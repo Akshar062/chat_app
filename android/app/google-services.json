@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "535176782346",
+    "project_id": "let-s-chat-ca2df",
+    "storage_bucket": "let-s-chat-ca2df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:535176782346:android:0a2c540e56c23fcc87f5f3",
+        "android_client_info": {
+          "package_name": "com.akshar2324.chat_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "535176782346-8schjqco2br6ebap8evffspmtkgctlkf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.akshar2324.chat_app",
+            "certificate_hash": "41e65f42c1da57dead35d138337a2f163022f398"
+          }
+        },
+        {
+          "client_id": "535176782346-9c0dd7ddg38hlu9kiv4j5qnr8kj82f5c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSTdsWpTuaLce5CPdwMAK2yMQdxXLovyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "535176782346-9c0dd7ddg38hlu9kiv4j5qnr8kj82f5c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "535176782346-6i0c2o25mgtjhdc3mbfc5l282j7tlnp1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.akshar2324.chatApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
