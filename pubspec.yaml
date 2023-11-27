@@ -40,9 +40,10 @@ dependencies:
   firebase_auth: ^4.14.1
   google_sign_in: ^6.1.6
   cloud_firestore: ^4.13.2
-  cached_network_image: ^3.2.3
+  cached_network_image: ^3.3.0
   image_picker: ^1.0.4
   firebase_storage: ^11.5.2
+  emoji_picker_flutter: ^1.6.3
 
 dev_dependencies:
   flutter_test:

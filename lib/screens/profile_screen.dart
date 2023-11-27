@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/helper/dialogs.dart';
 import 'package:chat_app/models/user.dart';
 import 'package:chat_app/screens/auth/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -37,11 +38,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(8.0),
           child: FloatingActionButton.extended(
             onPressed: () async {
+              await APIs.updateActiveStatus(false);
               Dialogs.showProgressBar(context);
               await APIs.auth.signOut().then((value) async {
                 await GoogleSignIn().signOut().then((value) {
                   Navigator.pop(context);
                   Navigator.pop(context);
+                  APIs.auth = FirebaseAuth.instance;
                   Navigator.pushReplacement(context,
                       MaterialPageRoute(builder: (_) => const LoginScreen()));
                 });
@@ -81,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   imageUrl: widget.user.image,
                                   width: mq.width * 0.3,
                                   height: mq.width * 0.3,
-                                  fit: BoxFit.cover ,
+                                  fit: BoxFit.cover,
                                   errorWidget: (context, url, error) =>
                                       const CircleAvatar(
                                         child: Icon(Icons.person),
@@ -227,12 +230,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (image != null) {
                       log(" image path ${image.path}");
                       setState(() {
-                        //   Dialogs.showProgressBar(context);
-                        //   APIs.updateImage(image).then((value) {
-                        //     Navigator.pop(context);
-                        //   });
                         _image = image.path;
                       });
+                      APIs.updateImage(File(_image!));
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -251,16 +252,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final ImagePicker picker = ImagePicker();
                     final XFile? image = await picker.pickImage(
                       source: ImageSource.gallery,
+                      imageQuality: 50,
                     );
                     if (image != null) {
                       log(" image path ${image.path}");
                       setState(() {
-                      //   Dialogs.showProgressBar(context);
-                      //   APIs.updateImage(image).then((value) {
-                      //     Navigator.pop(context);
-                      //   });
                         _image = image.path;
                       });
+                      APIs.updateImage(File(_image!));
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(

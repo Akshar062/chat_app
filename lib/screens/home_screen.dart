@@ -2,6 +2,7 @@ import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/widgets/chat_user_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
@@ -21,7 +22,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    APIs.getCurrentUser();
+    SystemChannels.lifecycle.setMessageHandler((msg) async {
+      if (APIs.auth.currentUser != null) {
+        if (msg == AppLifecycleState.resumed.toString()) {
+          await APIs.getCurrentUser();
+          await APIs.updateActiveStatus(true);
+        }
+        if (msg == AppLifecycleState.paused.toString()) {
+          await APIs.updateActiveStatus(false);
+        }
+      }
+      return Future.value(msg);
+    });
   }
 
   @override
@@ -30,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: WillPopScope(
         onWillPop: () async {
-          if(_isSearching) {
+          if (_isSearching) {
             setState(() {
               _isSearching = false;
             });
@@ -49,17 +61,17 @@ class _HomeScreenState extends State<HomeScreen> {
             title: _isSearching
                 ? TextField(
                     onChanged: (value) {
-                        _searchList.clear();
-                        for (var element in _list) {
-                          if (element.name
-                                  .toLowerCase()
-                                  .contains(value.toLowerCase()) ||
-                              element.email
-                                  .toLowerCase()
-                                  .contains(value.toLowerCase())) {
-                            _searchList.add(element);
-                          }
+                      _searchList.clear();
+                      for (var element in _list) {
+                        if (element.name
+                                .toLowerCase()
+                                .contains(value.toLowerCase()) ||
+                            element.email
+                                .toLowerCase()
+                                .contains(value.toLowerCase())) {
+                          _searchList.add(element);
                         }
+                      }
                       setState(() {
                         _searchList;
                       });
@@ -122,10 +134,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   } else {
                     final data = snapshot.data?.docs;
                     _list =
-                        data?.map((e) => CUser.fromJson(e.data())).toList() ?? [];
+                        data?.map((e) => CUser.fromJson(e.data())).toList() ??
+                            [];
                     if (_list.isNotEmpty) {
                       return ListView.builder(
-                        itemCount:_isSearching ? _searchList.length : _list.length,
+                        itemCount:
+                            _isSearching ? _searchList.length : _list.length,
                         itemBuilder: (context, index) {
                           return ChatUserCard(user: _list[index]);
                         },
