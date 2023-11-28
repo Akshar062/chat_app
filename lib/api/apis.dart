@@ -49,13 +49,13 @@ class APIs {
           'body': msg,
           'android_channel_id': 'chats'
         },
-        'data': {
-          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-          'id': '1',
-          'status': 'done',
-          'screen': 'chat',
-          'user': jsonEncode(me.toJson())
-        }
+        // 'data': {
+        //   'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+        //   'id': '1',
+        //   'status': 'done',
+        //   'screen': 'chat',
+        //   'user': jsonEncode(me.toJson())
+        // }
       };
       var url = Uri.parse('https://fcm.googleapis.com/fcm/send');
       var res = await post(url, headers: {
