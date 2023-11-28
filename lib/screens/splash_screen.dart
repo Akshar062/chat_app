@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,26 +17,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      //exit full-screen
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.white,
+          statusBarColor: Colors.white));
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      setState(() {
-        SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.immersiveSticky,
-        );
-        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: Brightness.dark,
-        ));
-        if (APIs.auth.currentUser != null) {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()));
-        } else {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()));
-        }
-      });
+      if (APIs.auth.currentUser != null) {
+        log('\nUser: ${APIs.auth.currentUser}');
+        //navigate to home screen
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+      } else {
+        //navigate to login screen
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
     });
   }
 

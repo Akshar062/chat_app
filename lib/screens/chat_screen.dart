@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/helper/time_formater.dart';
 import 'package:chat_app/models/massage.dart';
@@ -9,6 +11,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../main.dart';
 import 'info_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -33,14 +36,14 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: SafeArea(
         child: WillPopScope(
-          onWillPop: () async {
+          onWillPop: () {
             if (_showEmoji) {
               setState(() {
                 _showEmoji = false;
               });
-              return false;
+              return Future.value(false);
             } else {
-              return true;
+              return Future.value(true);
             }
           },
           child: Scaffold(
@@ -57,9 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       switch (snapshot.connectionState) {
                         case ConnectionState.waiting:
                         case ConnectionState.none:
-                          return const SizedBox(
-                            height: 10,
-                          );
+                          return const SizedBox();
                         case ConnectionState.active:
                         case ConnectionState.done:
                           final data = snapshot.data?.docs;
@@ -85,26 +86,27 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
                 ),
-                Align(
+                if (_isUploading)
+                  const Align(
                     alignment: Alignment.bottomRight,
                     child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: _isUploading
-                            ? const LinearProgressIndicator()
-                            : const SizedBox(height: 5))),
-                _chatInput(),
-                SizedBox(
-                  height: _showEmoji ? 300 : 0,
-                  child: EmojiPicker(
-                    textEditingController: _textController,
-                    config: const Config(
-                      bgColor: Colors.black,
-                      columns: 7,
-                      emojiSizeMax: 32,
+                      padding: EdgeInsets.only(right: 10),
+                      child: LinearProgressIndicator(),
                     ),
                   ),
-                ),
-                const SizedBox(height: 7),
+                _chatInput(),
+                if(_showEmoji)
+                  SizedBox(
+                    height: _showEmoji ? 300 : 0,
+                    child: EmojiPicker(
+                      textEditingController: _textController,
+                      config: const Config(
+                        bgColor: Colors.black,
+                        columns: 7,
+                        emojiSizeMax: 32,
+                      ),
+                    ),
+                  ),
               ])),
         ),
       ),
@@ -118,7 +120,6 @@ class _ChatScreenState extends State<ChatScreen> {
               context,
               MaterialPageRoute(
                   builder: (context) => InfoScreen(user: widget.user)));
-
         },
         child: StreamBuilder(
           stream: APIs.getUserInfo(widget.user),
@@ -137,10 +138,16 @@ class _ChatScreenState extends State<ChatScreen> {
                   },
                   icon: const Icon(Icons.arrow_back),
                 ),
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(
-                      list.isNotEmpty ? list[0].image : widget.user.image),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(mq.height * .03),
+                  child: CachedNetworkImage(
+                    width: mq.height * .05,
+                    height: mq.height * .05,
+                    imageUrl:
+                    list.isNotEmpty ? list[0].image : widget.user.image,
+                    errorWidget: (context, url, error) => const CircleAvatar(
+                        child: Icon(Icons.person)),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Column(
@@ -152,13 +159,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                         list.isNotEmpty
                             ? list[0].isOnline
-                            ? 'Online'
+                                ? 'Online'
+                                : MyDateUtil.getLastActiveTime(
+                                    context: context,
+                                    lastActive: list[0].lastActive)
                             : MyDateUtil.getLastActiveTime(
-                            context: context,
-                            lastActive: list[0].lastActive)
-                            : MyDateUtil.getLastActiveTime(
-                            context: context,
-                            lastActive: widget.user.lastActive),
+                                context: context,
+                                lastActive: widget.user.lastActive),
                         style:
                             const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
@@ -205,49 +212,54 @@ class _ChatScreenState extends State<ChatScreen> {
                     border: InputBorder.none,
                   ),
                 )),
+                //pick image from gallery button
                 IconButton(
-                  onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    final List<XFile> image = await picker.pickMultiImage(
-                      imageQuality: 50,
-                    );
-                    if (image.isNotEmpty) {
-                      for (final XFile img in image) {
-                        setState(() {
-                          _isUploading = true;
-                        });
-                        await APIs.sendImage(widget.user, File(img.path));
-                        setState(() {
-                          _isUploading = false;
-                        });
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+
+                      // Picking multiple images
+                      final List<XFile> images =
+                          await picker.pickMultiImage(imageQuality: 70);
+
+                      // uploading & sending image one by one
+                      for (var i in images) {
+                        log('Image Path: ${i.path}');
+                        setState(() => _isUploading = true);
+                        await APIs.sendImage(widget.user, File(i.path));
+                        setState(() => _isUploading = false);
                       }
-                    }
-                  },
-                  icon: const Icon(Icons.attach_file_outlined),
-                ),
+                    },
+                    icon:
+                        const Icon(Icons.image, color: Colors.grey, size: 26)),
+
+                //take image from camera button
                 IconButton(
-                  onPressed: () async {
-                    final ImagePicker picker0 = ImagePicker();
-                    final XFile? image = await picker0.pickImage(
-                        source: ImageSource.camera, imageQuality: 50);
-                    if (image != null) {
-                      setState(() {
-                        _isUploading = true;
-                      });
-                      await APIs.sendImage(widget.user, File(image.path));
-                      setState(() {
-                        _isUploading = false;
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.camera_alt_outlined),
-                ),
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+
+                      // Pick an image
+                      final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera, imageQuality: 70);
+                      if (image != null) {
+                        log('Image Path: ${image.path}');
+                        setState(() => _isUploading = true);
+
+                        await APIs.sendImage(widget.user, File(image.path));
+                        setState(() => _isUploading = false);
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt_rounded,
+                        color: Colors.grey, size: 26)),
+                SizedBox(width: mq.width * .02),
               ]),
             ),
           ),
           MaterialButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
+                if(_list.isEmpty){
+                  APIs.sendFirstMessage(widget.user, _textController.text, 'text');
+                }
                 APIs.sendMessage(widget.user, _textController.text, 'text');
                 _textController.clear();
               }

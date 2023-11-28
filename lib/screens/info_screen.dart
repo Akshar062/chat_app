@@ -22,7 +22,7 @@ class _InfoScreenState extends State<InfoScreen> {
       child: Scaffold(
         // AppBar
         appBar: AppBar(
-          title: const Text('Profile'),
+          title: Text(widget.user.name),
           centerTitle: true,
         ),
         floatingActionButton: Row(
@@ -102,10 +102,6 @@ class _InfoScreenState extends State<InfoScreen> {
                 SizedBox(
                   width: mq.width,
                   height: mq.height * 0.02,
-                ),
-                SizedBox(
-                  width: mq.width,
-                  height: mq.height * 0.05,
                 ),
               ],
             ),

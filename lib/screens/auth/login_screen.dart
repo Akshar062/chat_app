@@ -19,12 +19,25 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isAnimate = false;
 
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _isAnimate = true;
+      });
+    });
+  }
+
   _handleLoginButtonClick() {
     final currentContext = context;
     Dialogs.showProgressBar(currentContext);
     _signInWithGoogle().then((user) async {
       Navigator.pop(context);
       if (user != null) {
+        log('\nUser: ${user.user}');
+        log('\nUserAdditionalInfo: ${user.additionalUserInfo}');
         if(await APIs.userExists()){
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (currentContext) => const HomeScreen()));
@@ -34,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 context, MaterialPageRoute(builder: (currentContext) => const HomeScreen()));
           }).catchError((e){
             log("_handleLoginButtonClick: ${e.toString()}");
-            Dialogs.showSnackBar(context, e.toString());
+            Dialogs.showSnackBar(context, e.toString(), true);
           });
         }
       }
@@ -57,20 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return await APIs.auth.signInWithCredential(credential);
     } catch (e){
       log("_signInWithGoogle: ${e.toString()}");
-      Dialogs.showSnackBar(context, e.toString());
+      Dialogs.showSnackBar(context, e.toString(), true);
       return null;
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _isAnimate = true;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

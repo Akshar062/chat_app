@@ -51,8 +51,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               });
             },
             backgroundColor: Colors.blueGrey,
-            icon: const Icon(Icons.logout),
-            label: const Text('Logout'),
+            icon: const Icon(Icons.logout, color: Colors.white),
+            label: const Text('Logout',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                )),
           ),
         ),
         body: Form(
@@ -87,7 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   fit: BoxFit.cover,
                                   errorWidget: (context, url, error) =>
                                       const CircleAvatar(
-                                        child: Icon(Icons.person),
+                                        child: Icon(Icons.person,
+                                            ),
                                       )),
                             ),
                       Positioned(
@@ -129,12 +134,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
                       return null;
                     },
+                    cursorColor: Colors.blue,
                     decoration: const InputDecoration(
+                      focusColor: Colors.blue,
                       labelText: 'Name',
+                      labelStyle: TextStyle(
+                        color: Colors.blue,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
-                      prefixIcon: Icon(Icons.person),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      prefixIcon: Icon(Icons.person, color: Colors.white),
                       hintText: 'Enter your name',
                     ),
                   ),
@@ -151,12 +164,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
                       return null;
                     },
+                    cursorColor: Colors.blue,
                     decoration: const InputDecoration(
+                      focusColor: Colors.blue,
                       labelText: 'About',
+                      labelStyle: TextStyle(
+                        color: Colors.blue,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
-                      prefixIcon: Icon(Icons.info_outline),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                      prefixIcon: Icon(Icons.info_outline,color: Colors.white),
                       hintText: "Enter your about",
                     ),
                   ),

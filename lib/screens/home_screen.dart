@@ -1,9 +1,10 @@
+import 'dart:developer';
+
 import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/widgets/chat_user_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user.dart';
 
@@ -22,17 +23,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChannels.lifecycle.setMessageHandler((msg) async {
+    APIs.getCurrentUser();
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      log('Message: $message');
+
       if (APIs.auth.currentUser != null) {
-        if (msg == AppLifecycleState.resumed.toString()) {
-          await APIs.getCurrentUser();
-          await APIs.updateActiveStatus(true);
+        if (message.toString().contains('resume')) {
+          APIs.updateActiveStatus(true);
         }
-        if (msg == AppLifecycleState.paused.toString()) {
-          await APIs.updateActiveStatus(false);
+        if (message.toString().contains('pause')) {
+          APIs.updateActiveStatus(false);
         }
       }
-      return Future.value(msg);
+      return Future.value(message);
     });
   }
 
@@ -41,10 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: WillPopScope(
-        onWillPop: () async {
+        onWillPop: () {
           if (_isSearching) {
             setState(() {
-              _isSearching = false;
+              _isSearching = !_isSearching;
             });
             return Future.value(false);
           } else {
@@ -54,10 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
           // AppBar
           appBar: AppBar(
-            leading: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.home),
-            ),
+            leading: const Icon(Icons.home),
             title: _isSearching
                 ? TextField(
                     onChanged: (value) {
@@ -111,50 +111,141 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: FloatingActionButton(
               onPressed: () async {
-                await APIs.auth.signOut();
-                await GoogleSignIn().signOut();
+                _showAddDialog();
               },
               backgroundColor: Colors.blueGrey,
               child: const Icon(Icons.chat),
             ),
           ),
           body: StreamBuilder(
-            stream: APIs.getAllUsers(),
+            stream: APIs.getMyUsersId(),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.waiting:
-                  return const Center(
-                    child: CircularProgressIndicator(),
+                case ConnectionState.none:
+                case ConnectionState.active:
+                case ConnectionState.done:
+                  return StreamBuilder(
+                    stream: APIs.getAllUsers(
+                        snapshot.data?.docs.map((e) => e.id).toList() ?? []),
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                        case ConnectionState.none:
+                        case ConnectionState.active:
+                        case ConnectionState.done:
+                          final data = snapshot.data?.docs;
+                          _list = data
+                                  ?.map((e) => CUser.fromJson(e.data()))
+                                  .toList() ??
+                              [];
+                          if (_list.isNotEmpty) {
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(10),
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _isSearching
+                                  ? _searchList.length
+                                  : _list.length,
+                              itemBuilder: (context, index) {
+                                return ChatUserCard(
+                                    user: _isSearching
+                                        ? _searchList[index]
+                                        : _list[index]);
+                              },
+                            );
+                          } else {
+                            return const Center(
+                              child: Text('No User Found!'),
+                            );
+                          }
+                      }
+                    },
                   );
-                default:
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text('Something Went Wrong!'),
-                    );
-                  } else {
-                    final data = snapshot.data?.docs;
-                    _list =
-                        data?.map((e) => CUser.fromJson(e.data())).toList() ??
-                            [];
-                    if (_list.isNotEmpty) {
-                      return ListView.builder(
-                        itemCount:
-                            _isSearching ? _searchList.length : _list.length,
-                        itemBuilder: (context, index) {
-                          return ChatUserCard(user: _list[index]);
-                        },
-                      );
-                    } else {
-                      return const Center(
-                        child: Text('No User Found!'),
-                      );
-                    }
-                  }
               }
             },
           ),
         ),
       ),
     );
+  }
+
+  void _showAddDialog() {
+    String email = "";
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+              contentPadding:
+                  const EdgeInsets.only(right: 20, left: 20, top: 10),
+              backgroundColor: Colors.grey[800],
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.person,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text("Add Contect", style: TextStyle(fontSize: 16)),
+                ],
+              ),
+              content: TextFormField(
+                cursorColor: Colors.blue,
+                maxLines: null,
+                onChanged: (value) {
+                  email = value;
+                },
+                decoration: const InputDecoration(
+                  hintText: "Enter Email",
+                  prefixIcon: Icon(
+                    Icons.email,
+                    color: Colors.grey,
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(7),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(7),
+                    ),
+                  ),
+                ),
+                autofocus: true,
+              ),
+              actions: [
+                MaterialButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(color: Colors.blue),
+                    )),
+                MaterialButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      if (email.isNotEmpty) {
+                        await APIs.addChatUser(email).then((value) {
+                          if (value) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Added')));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Not Found')));
+                          }
+                        });
+                      }
+                    },
+                    child: const Text(
+                      "Add",
+                      style: TextStyle(color: Colors.blue),
+                    )),
+              ]);
+        });
   }
 }

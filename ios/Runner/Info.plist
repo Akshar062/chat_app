@@ -62,5 +62,7 @@
     <string>Microphone permission is required for voice messages</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Photo library permission is required for profile picture</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+<string>Photo library permission is required for picture</string>
 </dict>
 </plist>
