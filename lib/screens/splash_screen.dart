@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/screens/auth/login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../main.dart';
@@ -38,19 +37,6 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => const LoginScreen()));
       }
-
-      // APIs.auth.authStateChanges().listen((User? user) {
-      //   if (user != null) {
-      //     log('\nUser: ${user}');
-      //     // Navigate to home screen
-      //     Navigator.pushReplacement(
-      //         context, MaterialPageRoute(builder: (_) => const HomeScreen()));
-      //   } else {
-      //     // Navigate to login screen
-      //     Navigator.pushReplacement(
-      //         context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-      //   }
-      // });
     });
   }
 
