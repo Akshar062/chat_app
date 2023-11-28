@@ -111,7 +111,7 @@ class APIs {
         .collection('users')
         .doc(chatUser.id)
         .collection('contacts')
-        .doc(chatUser.id)
+        .doc(user.uid)
         .set({}).then((value) => sendMessage(chatUser, msg, type));
   }
 
